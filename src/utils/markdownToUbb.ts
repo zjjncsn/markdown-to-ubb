@@ -6,6 +6,7 @@ export interface MarkdownToUbbOptions {
   preserveSoftBreaks: boolean
   keepCodeLanguage: boolean
   boldTableHeader: boolean
+  showPromotion: boolean
   headingFormats: Record<HeadingLevel, HeadingFormat>
   ubbTemplates: UbbTemplates
 }
@@ -53,6 +54,7 @@ export const defaultMarkdownToUbbOptions: MarkdownToUbbOptions = {
   preserveSoftBreaks: true,
   keepCodeLanguage: false,
   boldTableHeader: true,
+  showPromotion: true,
   headingFormats: {
     1: { size: 6, bold: true },
     2: { size: 5, bold: true },
@@ -84,6 +86,8 @@ export const defaultMarkdownToUbbOptions: MarkdownToUbbOptions = {
 }
 
 const normalizeOutput = (value: string) => value.replace(/\n{2,}/g, '\n').trim()
+const promotionText =
+  '该内容使用 @考拉炒酸奶 开发的 [url=https://ubb.sci-tech.top]markdown 转 ubb 工具[/url]进行转换。'
 
 const renderText: RenderRule = (tokens, idx) => tokens[idx]?.content ?? ''
 
@@ -279,5 +283,9 @@ export function markdownToUbb(
   md.renderer.rules.html_inline = () => ''
   md.renderer.rules.html_block = () => ''
 
-  return normalizeOutput(md.render(markdown))
+  const result = normalizeOutput(md.render(markdown))
+
+  if (!options.showPromotion) return result
+
+  return [result, promotionText].filter(Boolean).join('\n')
 }

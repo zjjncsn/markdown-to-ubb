@@ -82,6 +82,10 @@ function mergeOptions(savedOptions: Partial<MarkdownToUbbOptions>): MarkdownToUb
     options.boldTableHeader = savedOptions.boldTableHeader
   }
 
+  if (typeof savedOptions.showPromotion === 'boolean') {
+    options.showPromotion = savedOptions.showPromotion
+  }
+
   for (const level of headingLevels) {
     const savedHeading = savedOptions.headingFormats?.[level]
 
@@ -643,6 +647,10 @@ function resetSettings() {
                     影响段落内的单个换行：开启时保留换行，关闭时会合并为空格。空行分段不受影响。
                   </span>
                 </span>
+              </label>
+              <label class="setting-check">
+                <input v-model="options.showPromotion" type="checkbox" />
+                <span>显示推广内容，让更多的人知道这个工具</span>
               </label>
             </div>
           </section>
