@@ -22,7 +22,7 @@ const sampleMarkdown = `# Markdown 转 UBB
 
 - 第一项
 - 第二项，包含 [链接](https://example.com)
-- 第三项，包含图片：![示例图](https://example.com/image.png)
+- 第三项，包含图片：![示例图](https://ubb.sci-tech.top/icon.png)
 
 ## 任务列表
 
