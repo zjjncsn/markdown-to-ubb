@@ -418,9 +418,12 @@ function resetSettings() {
 <template>
   <main class="app-shell">
     <header class="topbar">
-      <div>
-        <p class="eyebrow">Markdown to UBB</p>
-        <h1>论坛 UBB 转换器</h1>
+      <div class="brand">
+        <img src="/icon.png" alt="" class="brand-logo" />
+        <div>
+          <p class="eyebrow">Markdown to UBB</p>
+          <h1>论坛 UBB 转换器</h1>
+        </div>
       </div>
 
       <div class="actions">
@@ -767,6 +770,21 @@ input {
   gap: 20px;
   margin: 0 auto 18px;
   max-width: 1280px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.brand-logo {
+  width: 52px;
+  height: 52px;
+  flex: 0 0 auto;
+  border-radius: 8px;
+  object-fit: contain;
 }
 
 .eyebrow {
