@@ -87,7 +87,7 @@ export const defaultMarkdownToUbbOptions: MarkdownToUbbOptions = {
 
 const normalizeOutput = (value: string) => value.replace(/\n{2,}/g, '\n').trim()
 const promotionText =
-  '该内容使用 @考拉炒酸奶 开发的 [url=https://ubb.sci-tech.top]markdown 转 ubb 工具[/url]进行转换。'
+  '[size=2][color=#888888]该内容使用@考拉炒酸奶 开发的 [url=https://ubb.sci-tech.top]markdown 转 ubb 工具[/url] 进行转换。[/color][/size]'
 
 const renderText: RenderRule = (tokens, idx) => tokens[idx]?.content ?? ''
 
@@ -287,5 +287,5 @@ export function markdownToUbb(
 
   if (!options.showPromotion) return result
 
-  return [result, promotionText].filter(Boolean).join('\n')
+  return [result, promotionText].filter(Boolean).join('\n\n')
 }
