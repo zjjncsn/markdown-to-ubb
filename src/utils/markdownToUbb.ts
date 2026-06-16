@@ -4,6 +4,7 @@ import type Token from 'markdown-it/lib/token.mjs'
 
 export interface MarkdownToUbbOptions {
   preserveSoftBreaks: boolean
+  addBlankLineAfterBlock: boolean
   keepCodeLanguage: boolean
   boldTableHeader: boolean
   showPromotion: boolean
@@ -52,6 +53,7 @@ export interface UbbTemplates {
 
 export const defaultMarkdownToUbbOptions: MarkdownToUbbOptions = {
   preserveSoftBreaks: true,
+  addBlankLineAfterBlock: false,
   keepCodeLanguage: false,
   boldTableHeader: true,
   showPromotion: true,
@@ -85,7 +87,8 @@ export const defaultMarkdownToUbbOptions: MarkdownToUbbOptions = {
   },
 }
 
-const normalizeOutput = (value: string) => value.replace(/\n{2,}/g, '\n').trim()
+const normalizeOutput = (value: string, keepBlankLines: boolean) =>
+  value.replace(keepBlankLines ? /\n{3,}/g : /\n{2,}/g, keepBlankLines ? '\n\n' : '\n').trim()
 const promotionText =
   '[size=2][color=#888888]该内容使用@考拉炒酸奶 开发的 [url=https://ubb.sci-tech.top]markdown 转 ubb 工具[/url] 进行转换。[/color][/size]'
 
@@ -163,6 +166,7 @@ export function markdownToUbb(
     },
   }
   const tags = options.ubbTemplates
+  const blockBreak = options.addBlankLineAfterBlock ? '\n\n' : '\n'
 
   const md = new MarkdownIt({
     html: false,
@@ -174,7 +178,8 @@ export function markdownToUbb(
 
   md.renderer.rules.text = renderText
   md.renderer.rules.paragraph_open = () => ''
-  md.renderer.rules.paragraph_close = (tokens, idx) => (tokens[idx + 1]?.type === 'blockquote_close' ? '' : '\n')
+  md.renderer.rules.paragraph_close = (tokens, idx) =>
+    tokens[idx + 1]?.type === 'blockquote_close' ? '' : blockBreak
   md.renderer.rules.softbreak = () => (options.preserveSoftBreaks ? '\n' : ' ')
   md.renderer.rules.hardbreak = () => '\n'
 
@@ -191,7 +196,7 @@ export function markdownToUbb(
   }
   md.renderer.rules.heading_close = (tokens, idx) => {
     const tag = tokens[idx]?.tag ?? 'h3'
-    return `${getHeadingPair(options.headingFormats[getHeadingLevel(tag)]).close}\n`
+    return `${getHeadingPair(options.headingFormats[getHeadingLevel(tag)]).close}${blockBreak}`
   }
 
   md.renderer.rules.link_open = (tokens, idx) => {
@@ -214,33 +219,33 @@ export function markdownToUbb(
   md.renderer.rules.code_inline = (tokens, idx) =>
     wrapContent(tokens[idx]?.content ?? '', tags.inlineCode)
   md.renderer.rules.code_block = (tokens, idx) =>
-    `${wrapContent(tokens[idx]?.content ?? '', tags.codeBlock)}\n`
+    `${wrapContent(tokens[idx]?.content ?? '', tags.codeBlock)}${blockBreak}`
   md.renderer.rules.fence = (tokens, idx) => {
     const token = tokens[idx]
     const language = token?.info.trim().split(/\s+/)[0] ?? ''
     const content = token?.content ?? ''
 
-    if (!tags.codeBlock.enabled) return `${content}\n`
+    if (!tags.codeBlock.enabled) return `${content}${blockBreak}`
 
     const codeTag =
       options.keepCodeLanguage && language
         ? applyTemplate(tags.codeBlock.open, { lang: language })
         : tags.codeBlock.open
 
-    return `${codeTag}${content}${tags.codeBlock.close}\n`
+    return `${codeTag}${content}${tags.codeBlock.close}${blockBreak}`
   }
 
   md.renderer.rules.blockquote_open = () => (tags.quote.enabled ? tags.quote.open : '')
-  md.renderer.rules.blockquote_close = () => (tags.quote.enabled ? `${tags.quote.close}\n` : '\n')
+  md.renderer.rules.blockquote_close = () => (tags.quote.enabled ? `${tags.quote.close}${blockBreak}` : blockBreak)
 
   md.renderer.rules.bullet_list_open = () =>
     tags.unorderedList.enabled ? `${tags.unorderedList.open}\n` : ''
   md.renderer.rules.bullet_list_close = () =>
-    tags.unorderedList.enabled ? `${tags.unorderedList.close}\n` : '\n'
+    tags.unorderedList.enabled ? `${tags.unorderedList.close}${blockBreak}` : blockBreak
   md.renderer.rules.ordered_list_open = () =>
     tags.orderedList.enabled ? `${tags.orderedList.open}\n` : ''
   md.renderer.rules.ordered_list_close = () =>
-    tags.orderedList.enabled ? `${tags.orderedList.close}\n` : '\n'
+    tags.orderedList.enabled ? `${tags.orderedList.close}${blockBreak}` : blockBreak
   md.renderer.rules.list_item_open = (tokens, idx) => {
     const token = tokens[idx]
     const taskState = token?.attrGet('data-task')
@@ -257,7 +262,7 @@ export function markdownToUbb(
   md.renderer.rules.list_item_close = () => (tags.listItem.enabled ? `${tags.listItem.close}\n` : '\n')
 
   md.renderer.rules.table_open = () => (tags.table.enabled ? `${tags.table.open}\n` : '')
-  md.renderer.rules.table_close = () => (tags.table.enabled ? `${tags.table.close}\n` : '\n')
+  md.renderer.rules.table_close = () => (tags.table.enabled ? `${tags.table.close}${blockBreak}` : blockBreak)
   md.renderer.rules.thead_open = () => ''
   md.renderer.rules.thead_close = () => ''
   md.renderer.rules.tbody_open = () => ''
@@ -279,11 +284,11 @@ export function markdownToUbb(
   md.renderer.rules.td_open = () => (tags.tableCell.enabled ? tags.tableCell.open : '')
   md.renderer.rules.td_close = () => (tags.tableCell.enabled ? tags.tableCell.close : '')
 
-  md.renderer.rules.hr = () => (tags.horizontalRule.enabled ? `${tags.horizontalRule.value}\n` : '')
+  md.renderer.rules.hr = () => (tags.horizontalRule.enabled ? `${tags.horizontalRule.value}${blockBreak}` : '')
   md.renderer.rules.html_inline = () => ''
   md.renderer.rules.html_block = () => ''
 
-  const result = normalizeOutput(md.render(markdown))
+  const result = normalizeOutput(md.render(markdown), options.addBlankLineAfterBlock)
 
   if (!options.showPromotion) return result
 

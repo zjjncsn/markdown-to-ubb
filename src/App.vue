@@ -74,6 +74,10 @@ function mergeOptions(savedOptions: Partial<MarkdownToUbbOptions>): MarkdownToUb
     options.preserveSoftBreaks = savedOptions.preserveSoftBreaks
   }
 
+  if (typeof savedOptions.addBlankLineAfterBlock === 'boolean') {
+    options.addBlankLineAfterBlock = savedOptions.addBlankLineAfterBlock
+  }
+
   if (typeof savedOptions.keepCodeLanguage === 'boolean') {
     options.keepCodeLanguage = savedOptions.keepCodeLanguage
   }
@@ -655,6 +659,10 @@ function resetSettings() {
                 <input v-model="options.showPromotion" type="checkbox" />
                 <span>显示推广内容，让更多的人知道这个工具</span>
               </label>
+              <label class="setting-check">
+                <input v-model="options.addBlankLineAfterBlock" type="checkbox" />
+                <span>每段后面添加空行</span>
+              </label>
             </div>
           </section>
         </div>
@@ -924,9 +932,15 @@ select:disabled {
   border-bottom: 1px solid #e7ecf2;
 }
 
+.panel-head h2 {
+  min-width: 0;
+}
+
 .panel-head span {
+  flex: 0 0 auto;
   color: #6b7280;
   font-size: 13px;
+  white-space: nowrap;
 }
 
 textarea {
@@ -949,6 +963,8 @@ textarea[readonly] {
 }
 
 .render-panel {
+  min-width: 0;
+  overflow: hidden;
   border-top: 1px solid #e7ecf2;
   background: #ffffff;
 }
@@ -962,6 +978,7 @@ textarea[readonly] {
 }
 
 .render-content {
+  min-width: 0;
   min-height: 220px;
   max-height: 360px;
   overflow: auto;
@@ -969,10 +986,12 @@ textarea[readonly] {
   color: #1f2937;
   font-size: 14px;
   line-height: 1.65;
+  overflow-wrap: anywhere;
   word-break: break-word;
 }
 
 .render-content :deep(*) {
+  min-width: 0;
   max-width: 100%;
 }
 
@@ -997,7 +1016,8 @@ textarea[readonly] {
 }
 
 .render-content :deep(pre) {
-  overflow: auto;
+  max-width: 100%;
+  overflow-x: auto;
   padding: 12px;
   border-radius: 8px;
   background: #f1f4f8;
@@ -1016,15 +1036,21 @@ textarea[readonly] {
 }
 
 .render-content :deep(table) {
-  width: 100%;
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  overflow-x: auto;
   border-collapse: collapse;
   margin: 0 0 0.75em;
 }
 
 .render-content :deep(td),
 .render-content :deep(th) {
+  min-width: 80px;
+  max-width: 260px;
   padding: 8px;
   border: 1px solid #d8e0ea;
+  overflow-wrap: anywhere;
 }
 
 .render-content :deep(img) {
