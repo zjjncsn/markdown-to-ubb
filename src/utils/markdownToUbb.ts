@@ -170,7 +170,7 @@ export function markdownToUbb(
 
   const md = new MarkdownIt({
     html: false,
-    linkify: true,
+    linkify: false,
     breaks: options.preserveSoftBreaks,
     typographer: false,
   })
@@ -223,7 +223,7 @@ export function markdownToUbb(
   md.renderer.rules.fence = (tokens, idx) => {
     const token = tokens[idx]
     const language = token?.info.trim().split(/\s+/)[0] ?? ''
-    const content = token?.content ?? ''
+    const content = (token?.content ?? '').replace(/\n$/, '')
 
     if (!tags.codeBlock.enabled) return `${content}${blockBreak}`
 
