@@ -67,6 +67,11 @@ const createDefaultOptions = (): MarkdownToUbbOptions => structuredClone(default
 const cloneOptions = (value: MarkdownToUbbOptions): MarkdownToUbbOptions =>
   JSON.parse(JSON.stringify(toRaw(value))) as MarkdownToUbbOptions
 
+function applyCc98HeadingSizes(options: MarkdownToUbbOptions) {
+  options.headingFormats[1].size = '07'
+  options.headingFormats[2].size = 7
+}
+
 function mergeOptions(savedOptions: Partial<MarkdownToUbbOptions>): MarkdownToUbbOptions {
   const options = createDefaultOptions()
 
@@ -95,7 +100,7 @@ function mergeOptions(savedOptions: Partial<MarkdownToUbbOptions>): MarkdownToUb
 
     if (!savedHeading) continue
 
-    if (typeof savedHeading.size === 'number') {
+    if (typeof savedHeading.size === 'number' || typeof savedHeading.size === 'string') {
       options.headingFormats[level].size = savedHeading.size
     }
 
@@ -136,6 +141,7 @@ function createCc98Options(): MarkdownToUbbOptions {
   options.ubbTemplates.tableHeaderCell.open = '[th]'
   options.ubbTemplates.tableHeaderCell.close = '[/th]'
   options.ubbTemplates.horizontalRule.value = '[line]'
+  applyCc98HeadingSizes(options)
 
   return options
 }
@@ -157,6 +163,12 @@ function ensureBuiltinProfiles(profiles: SettingsProfile[]) {
 
   if (!normalizedProfiles.some((profile) => profile.id === cc98ProfileId || profile.name === 'CC98')) {
     normalizedProfiles.push(createCc98Profile())
+  }
+
+  for (const profile of normalizedProfiles) {
+    if (profile.id === cc98ProfileId || profile.name === 'CC98') {
+      applyCc98HeadingSizes(profile.options)
+    }
   }
 
   return normalizedProfiles
@@ -231,7 +243,7 @@ const activeProfile = computed(() => profiles.value.find((profile) => profile.id
 const editingProfile = computed(() => creatingProfile.value || renamingProfile.value)
 const options = ref<MarkdownToUbbOptions>(activeProfile.value?.options ?? createDefaultOptions())
 
-const headingSizes = [1, 2, 3, 4, 5, 6, 7]
+const headingSizes = [1, 2, 3, 4, 5, 6, 7, '07']
 const previewMarkdown = new MarkdownIt({
   html: false,
   linkify: true,
@@ -500,7 +512,7 @@ function resetSettings() {
               </div>
               <div v-for="level in headingLevels" :key="level" class="heading-row">
                 <strong>H{{ level }}</strong>
-                <select v-model.number="options.headingFormats[level].size">
+                <select v-model="options.headingFormats[level].size">
                   <option v-for="size in headingSizes" :key="size" :value="size">
                     {{ size }}
                   </option>

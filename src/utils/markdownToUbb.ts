@@ -15,7 +15,7 @@ export interface MarkdownToUbbOptions {
 export type HeadingLevel = 1 | 2 | 3 | 4 | 5 | 6
 
 export interface HeadingFormat {
-  size: number
+  size: number | string
   bold: boolean
 }
 
@@ -106,8 +106,9 @@ const getHeadingLevel = (tag: string): HeadingLevel => {
 }
 
 const getHeadingPair = (format: HeadingFormat): Pick<UbbPair, 'open' | 'close'> => {
-  const open = `${format.size > 0 ? `[size=${format.size}]` : ''}${format.bold ? '[b]' : ''}`
-  const close = `${format.bold ? '[/b]' : ''}${format.size > 0 ? '[/size]' : ''}`
+  const size = Number(format.size)
+  const open = `${size > 0 ? `[size=${format.size}]` : ''}${format.bold ? '[b]' : ''}`
+  const close = `${format.bold ? '[/b]' : ''}${size > 0 ? '[/size]' : ''}`
 
   return { open, close }
 }
